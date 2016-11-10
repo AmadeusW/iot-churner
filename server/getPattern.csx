@@ -1,21 +1,31 @@
+using System.IO;
 using System.Net;
+using ProtoBuf;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
-    log.Info($"C# HTTP trigger function processed a request. RequestUri={req.RequestUri}");
+    log.Info($"iot-churner function activated by {req.RequestUri}");
 
-    // parse query parameter
-    string name = req.GetQueryNameValuePairs()
-        .FirstOrDefault(q => string.Compare(q.Key, "name", true) == 0)
-        .Value;
+    var payload = new Payload
+    {
+        Times = new int[] {     0,  500,    2500,   3000,   4000,   4500,   6500,   7000    },
+        Speeds = new int[] {    0,  100,    100,    0,      0,      -100,   -100,   0       },
+    };
+    using (var data = new MemoryStream())
+    {
+        Serializer.Serialize(data, payload);
+        var text = System.Text.Encoding.ASCII.GetString(data.GetBuffer());
+        log.Info($"Returning {text}");
+        return text;
+    }   
+}
 
-    // Get request body
-    dynamic data = await req.Content.ReadAsAsync<object>();
+[ProtoContract]
+class Payload
+{
+    [ProtoMember(1)]
+    public int[] Times { get; set; } = new int[10];
 
-    // Set name to query string or body data
-    name = name ?? data?.name;
-
-    return name == null
-        ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
-        : req.CreateResponse(HttpStatusCode.OK, "Hello " + name);
+    [ProtoMember(2)]
+    public int[] Speeds { get; set; } = new int[10];
 }
