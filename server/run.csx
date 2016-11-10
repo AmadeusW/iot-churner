@@ -14,7 +14,12 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     using (var data = new MemoryStream())
     {
         Serializer.Serialize(data, payload);
-        var text = System.Text.Encoding.ASCII.GetString(data.GetBuffer());
+        var sb = new StringBuilder();
+        foreach (var b in data.ToArray())
+        {
+            sb.Append((char)b);
+        }
+        var text= sb.ToString();
         log.Info($"Returning {text}");
         return req.CreateResponse(HttpStatusCode.OK, text);
     }   
