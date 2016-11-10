@@ -16,7 +16,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         Serializer.Serialize(data, payload);
         var text = System.Text.Encoding.ASCII.GetString(data.GetBuffer());
         log.Info($"Returning {text}");
-        return text;
+        return req.CreateResponse(HttpStatusCode.OK, text);
     }   
 }
 
