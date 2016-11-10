@@ -1,0 +1,10 @@
+{
+    "id": "685DD2B821C14C0BBEA8CD71142C5A2B",
+    "functionTimeout": "00:00:30",
+    "http": {
+        "routePrefix": "server"
+    },
+    "tracing": {
+      "consoleLevel": "info"
+    }
+}
