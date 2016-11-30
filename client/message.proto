@@ -1,6 +1,0 @@
-syntax = "proto3";
-
-message ChurnPattern {
-    repeated int32 Times = 1;
-    repeated int32 Speeds = 2;
-}
