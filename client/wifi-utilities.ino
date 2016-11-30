@@ -1,19 +1,14 @@
 #include <SPI.h>
 #include <WiFi101.h>
-
-char ssid[] = ""; //  your network SSID (name)
-char pass[] = "";    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;            // your network key Index number (needed only for WEP)
+#include "D:\arduino-wifi.c"
+/*
+// Included in D:\arduino-wifi.c
+char ssid[] = "";
+char pass[] = "";
+*/
 
 int status = WL_IDLE_STATUS;
-// if you don't want to use DNS (and reduce your sketch size)
-// use the numeric IP instead of the name for the server:
-//IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
-char server[] = "amadeusw-iot.azurewebsites.net";    // name address for Google (using DNS)
-
-// Initialize the Ethernet client library
-// with the IP address and port of the server
-// that you want to connect to (port 80 is default for HTTP):
+char server[] = "amadeusw-iot.azurewebsites.net";
 WiFiClient client;
 
 void setup() {
@@ -26,7 +21,6 @@ void setup() {
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
-    // don't continue:
     while (true);
   }
 
@@ -34,12 +28,10 @@ void setup() {
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 2 seconds for connection:
     delay(2000);
   }
+
   Serial.println("Connected to wifi");
   printWifiStatus();
 
@@ -48,7 +40,7 @@ void setup() {
   if (client.connect(server, 80)) {
     Serial.println("connected to server");
     // Make a HTTP request:
-    client.println("GET /server/churn?code=OuMNxJvyiMu2nxCphya6sYASLGyJZy1SjNX1EgbXxnv/G3UoWkiDnQ== HTTP/1.1");
+    client.println(churner-request);
     client.println("Host: amadeusw-iot.azurewebsites.net");
     client.println("Connection: close");
     client.println();
