@@ -1,9 +1,0 @@
-{
-    "frameworks": {
-        "net46": {
-            "dependencies": {
-                "protobuf-net": "2.1.0"
-            }
-        }
-    }
-}
