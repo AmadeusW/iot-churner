@@ -1,8 +1,8 @@
 module.exports = function(context, req) {
 
     var payload = {
-        "Times":    [ 0,  500,    2500,   3000,   4000,   4500,   6500,   7000 ],
-        "Speeds":   [ 0,  100,    100,    0,      0,      -100,   -100,   0    ] 
+        "Times":    [ 666,  500,    2500,   3000,   4000,   4500,   6500,   7000 ],
+        "Speeds":   [ 666,  100,    100,    0,      0,      -100,   -100,   0    ] 
     };
 
     var message = serialize(payload);
