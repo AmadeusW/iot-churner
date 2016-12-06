@@ -11,11 +11,12 @@ int status = WL_IDLE_STATUS;
 char server[] = "amadeusw-iot.azurewebsites.net";
 WiFiClient client;
 
-void setup() {
-  //Initialize serial and wait for port to open:
+void setupWifi() {
+  //Initialize serial and wait for port to open
+  //TODO: See if I need this for untethered operation
   Serial.begin(9600);
   while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
+    ; 
   }
 
   // check for the presence of the shield:
@@ -34,7 +35,9 @@ void setup() {
 
   Serial.println("Connected to wifi");
   printWifiStatus();
+}
 
+void downloadRecipe() {
   Serial.println("\nStarting connection to server...");
   // if you get a connection, report back via serial:
   if (client.connect(server, 80)) {
@@ -45,9 +48,7 @@ void setup() {
     client.println("Connection: close");
     client.println();
   }
-}
 
-void loop() {
   // if there are incoming bytes available
   // from the server, read them and print them:
   while (client.available()) {
@@ -60,12 +61,8 @@ void loop() {
     Serial.println();
     Serial.println("disconnecting from server.");
     client.stop();
-
-    // do nothing forevermore:
-    while (true);
   }
 }
-
 
 void printWifiStatus() {
   // print the SSID of the network you're attached to:
