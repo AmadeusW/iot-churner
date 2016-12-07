@@ -1,3 +1,7 @@
+#include motor
+#include pins
+#include wifi-utilities
+
 // State of buttons
 int buttonState;
 int lastButtonState;
@@ -13,14 +17,9 @@ const int ERROR = 4;
 int errorCode = 0;
 int state = UNINITIALIZED;
 
-// the following variables are unsigned long's because the time, measured in miliseconds,
-// will quickly become a bigger number than can't be stored in an int.
-unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
-
 void setup() {
     setupPins();
-    setupMotor();
+//    setupMotor();
     setupWifi();
     state = DOWNLOADING;
     updateUi(0);
@@ -31,7 +30,19 @@ void setup() {
 
 void loop() {
     int now = millis();
-    int reading = digitalRead(buttonPin);
+
+    if (state == ERROR)
+    {
+        updateUi(now);
+        delay(100);
+        return;
+    }
+    if (state == CHURNING)
+    {
+        runMotor();
+    }
+
+    int reading = digitalRead(pinButton);
     if (reading != lastButtonState) {
         // reset the debouncing timer
         debounceTime = now;

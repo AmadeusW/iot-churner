@@ -42,9 +42,9 @@ void updateUi(int millis) {
     else if (state == CHURNING)
     {
         int brightness = 0;
-        if (millis() - lastTimeOn < 10000)
+        if (millis() - lastDebounceTime < 10000)
         {
-            brightness = 100 - (millis - lastTimeOn)/100;
+            brightness = 100 - (millis - lastDebounceTime)/100;
         }
         ledR = brightness * 1.5;
         ledG = brightness * 0.5;
@@ -53,7 +53,9 @@ void updateUi(int millis) {
     else if (state == ERROR)
     {
         // TODO: figure out how to blink LED depending on millis and errorCode
-        ledR = 200;
+        if (millis % 500 < 250) {
+            ledR = 200;
+        }
     }
     analogWrite(pinLedR, ledR);
     analogWrite(pinLedG, ledG);

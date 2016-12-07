@@ -42,16 +42,16 @@ const int offsetB = 1;
 // motors as you have memory for.  If you are using functions like forward
 // that take 2 motors as arguements you can either write new functions or
 // call the function more than once.
-Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
-Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
-void setup()
+Motor motor1
+
+void setupMotor()
 {
- //Nothing here
+  motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
 }
 
 
-void loop()
+void runMotor()
 {
    //Use of the drive function which takes as arguements the speed
    //and optional duration.  A negative speed will cause it to go
