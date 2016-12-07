@@ -5,10 +5,12 @@ const unsigned long debounceDelay = 50;
 unsigned long debounceTime = 0;
 
 // State machine              // can go to
-const int UNINITIALIZED = 0;  // 1
-const int DOWNLOADING = 1;    // 2 3
+const int UNINITIALIZED = 0;  // 1 4
+const int DOWNLOADING = 1;    // 2 3 4
 const int READY = 2;          // 3
 const int CHURNING = 3;       // 2
+const int ERROR = 4;
+int errorCode = 0;
 int state = UNINITIALIZED;
 
 // the following variables are unsigned long's because the time, measured in miliseconds,
@@ -21,20 +23,21 @@ void setup() {
     setupMotor();
     setupWifi();
     state = DOWNLOADING;
-    updateUi();
+    updateUi(0);
     downloadRecipe();
     state = READY;
-    updateUi();
+    updateUi(0);
 }
 
 void loop() {
+    int now = millis();
     int reading = digitalRead(buttonPin);
     if (reading != lastButtonState) {
         // reset the debouncing timer
-        debounceTime = millis();
+        debounceTime = now;
     }
 
-    if (millis() > lastDebounceTime + debounceDelay) {
+    if (now > lastDebounceTime + debounceDelay) {
         if (reading != buttonState) {
             buttonState = reading;
 
@@ -46,6 +49,6 @@ void loop() {
         }
     }
 
-    updateUi();
+    updateUi(now);
     lastButtonState = reading;
 }

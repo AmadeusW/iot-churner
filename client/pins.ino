@@ -22,7 +22,7 @@ void setupPins() {
     digitalWrite(pinMotor, 0);
 }
 
-void updateUi() {
+void updateUi(int millis) {
     state = newState;
     ledR = 0;
     ledG = 0;
@@ -44,11 +44,16 @@ void updateUi() {
         int brightness = 0;
         if (millis() - lastTimeOn < 10000)
         {
-            brightness = 100 - (millis() - lastTimeOn)/100;
+            brightness = 100 - (millis - lastTimeOn)/100;
         }
         ledR = brightness * 1.5;
         ledG = brightness * 0.5;
         ledB = brightness * 0.8;
+    }
+    else if (state == ERROR)
+    {
+        // TODO: figure out how to blink LED depending on millis and errorCode
+        ledR = 200;
     }
     analogWrite(pinLedR, ledR);
     analogWrite(pinLedG, ledG);
