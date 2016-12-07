@@ -3,8 +3,9 @@
 #include "D:\arduino-wifi.c"
 /*
 // Included in D:\arduino-wifi.c
-char ssid[] = "";
-char pass[] = "";
+char ssid[] = "...";
+char pass[] = "...";
+char churner-request = "...";
 */
 
 int status = WL_IDLE_STATUS;
