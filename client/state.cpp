@@ -1,16 +1,7 @@
-// Pins
+#include "Arduino.h"
+#include "state.h"
 
-const int pinButton = 2;
-const int pinLed = 13;
-const int pinLedR = 1;
-const int pinLedG = 3;
-const int pinLedB = 2;
-
-int ledR = LOW;
-int ledG = LOW;
-int ledB = LOW;
-
-void setupPins() {
+void State::SetupPins() {
     pinMode(pinButton, INPUT);
     pinMode(pinLedR, OUTPUT);
     pinMode(pinLedG, OUTPUT);
@@ -22,8 +13,12 @@ void setupPins() {
     digitalWrite(pinMotor, 0);
 }
 
-void updateUi(int millis) {
-    state = newState;
+void State::UpdateState(int newState)
+{
+	state = newState;
+}
+
+void State::UpdateUi(long millis) {
     ledR = 0;
     ledG = 0;
     ledB = 0;
@@ -42,9 +37,9 @@ void updateUi(int millis) {
     else if (state == CHURNING)
     {
         int brightness = 0;
-        if (millis() - lastDebounceTime < 10000)
+        if (millis - debounceTime < 10000)
         {
-            brightness = 100 - (millis - lastDebounceTime)/100;
+            brightness = 100 - (millis - debounceTime)/100;
         }
         ledR = brightness * 1.5;
         ledG = brightness * 0.5;
@@ -60,4 +55,10 @@ void updateUi(int millis) {
     analogWrite(pinLedR, ledR);
     analogWrite(pinLedG, ledG);
     analogWrite(pinLedB, ledB);
+}
+
+void State::Error(int code)
+{
+	errorCode = code;
+	state = ERROR;
 }
