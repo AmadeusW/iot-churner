@@ -145,7 +145,7 @@ void Run()
     // Brake
     digitalWrite(pinMotorIn1, HIGH);
     digitalWrite(pinMotorIn2, HIGH);
-    analogWrite(pinMotorPwm, 0);	
+    analogWrite(pinMotorPwm, 0);  
 }
 
 void UpdateState(int newState)
@@ -176,12 +176,10 @@ void SetupState() {
 }
 
 void SetupWifi() {
-    //Initialize serial and wait for port to open
-    //TODO: See if I need this for untethered operation
     Serial.begin(9600);
-    while (!Serial) {
-        ;
-    }
+
+    // Wait for developer to launch the console
+    while (!Serial) { ; }
 
     // check for the presence of the shield:
     if (WiFi.status() == WL_NO_SHIELD) {
@@ -213,30 +211,24 @@ void DownloadRecipe() {
         client.println("Host: amadeusw-iot.azurewebsites.net");
         client.println("Connection: close");
         client.println();
-    }/*
-      if (client.connect(server, 80)) {
-    Serial.println("connected to server");
-    // Make a HTTP request:
-    client.println("GET /search?q=arduino HTTP/1.1");
-    client.println("Host: www.google.com");
-    client.println("Connection: close");
-    client.println();
-  }*/
+    }
 
-    // if there are incoming bytes available
-    // from the server, read them and print them:
-    while (client.available()) {
-        char c = client.read();
-        Serial.write(c);
+    int success = 0;
+
+    while (!success) {
+        while (client.available()) {
+            char c = client.read();
+            Serial.write(c);
+        }
+
+        // if the server's disconnected, stop the client:
+        if (!client.connected()) {
+            Serial.println();
+            success = 1;
+            Serial.println("disconnecting from server.");
+            client.stop();
+        }
     }
-    Serial.println("all was read.");
-    // if the server's disconnected, stop the client:
-    if (!client.connected()) {
-        Serial.println();
-        Serial.println("disconnecting from server.");
-        client.stop();
-    }
-    Serial.println("no more connection.");
 }
 
 void printWifiStatus() {
@@ -255,3 +247,4 @@ void printWifiStatus() {
     Serial.print(rssi);
     Serial.println(" dBm");
 }
+
