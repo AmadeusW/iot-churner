@@ -44,9 +44,7 @@ void setup() {
     SetupState();
     SetupWifi();
     UpdateState(DOWNLOADING);
-    DownloadRecipe();
-    UpdateState(READY);
-  UpdateUi(0);
+    UpdateUi(0);
 }
 
 void loop() {
@@ -58,8 +56,15 @@ void loop() {
         delay(100);
         return;
     }
+    if (state == DOWNLOADING)
+    {
+        delay(2000);
+        DownloadRecipe();
+        UpdateState(READY);
+    }
     if (state == CHURNING)
     {
+        DownloadRecipe();
         Run();
     }
 
@@ -145,9 +150,9 @@ void Run()
 
 void UpdateState(int newState)
 {
-    if (!Serial)
-        Serial.println(newState);
+    Serial.println(newState);
     state = newState;
+    UpdateUi(0);
 }
 
 void Error(int code)
@@ -181,6 +186,7 @@ void SetupWifi() {
     // check for the presence of the shield:
     if (WiFi.status() == WL_NO_SHIELD) {
         Serial.println("WiFi shield not present");
+        // TODO: Go to error state
         while (true);
     }
 
@@ -190,7 +196,7 @@ void SetupWifi() {
         Serial.print("Attempting to connect to SSID: ");
         Serial.println(ssid);
         status = WiFi.begin(ssid, pass);
-        delay(1000);
+        delay(2000);
     }
     printWifiStatus();
 }
@@ -198,15 +204,24 @@ void SetupWifi() {
 void DownloadRecipe() {
     Serial.println("\nStarting connection to server...");
     // if you get a connection, report back via serial:
-    if (client.connect(server, 80)) {
+    
+    if (client.connectSSL(server, 443)) {
         Serial.println("connected to server");
         // Make a HTTP request:
-        client.println(request);
-        Serial.println(request);
+        Serial.println("GET /api/churn?code=g91FzFXKyVhsFcP8QeDpGaCe8e5ur4okOda8auCCTCA5n7l1R/znGA== HTTP/1.1");
+        client.println("GET /api/churn?code=g91FzFXKyVhsFcP8QeDpGaCe8e5ur4okOda8auCCTCA5n7l1R/znGA== HTTP/1.1");
         client.println("Host: amadeusw-iot.azurewebsites.net");
         client.println("Connection: close");
         client.println();
-    }
+    }/*
+      if (client.connect(server, 80)) {
+    Serial.println("connected to server");
+    // Make a HTTP request:
+    client.println("GET /search?q=arduino HTTP/1.1");
+    client.println("Host: www.google.com");
+    client.println("Connection: close");
+    client.println();
+  }*/
 
     // if there are incoming bytes available
     // from the server, read them and print them:
@@ -214,13 +229,14 @@ void DownloadRecipe() {
         char c = client.read();
         Serial.write(c);
     }
-
+    Serial.println("all was read.");
     // if the server's disconnected, stop the client:
     if (!client.connected()) {
         Serial.println();
         Serial.println("disconnecting from server.");
         client.stop();
     }
+    Serial.println("no more connection.");
 }
 
 void printWifiStatus() {
