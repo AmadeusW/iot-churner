@@ -25,5 +25,6 @@ function serialize(payload)
         message += payload["Speeds"][i];
         message += ";";
     }
+    message += "\n";
     return message;
 }
