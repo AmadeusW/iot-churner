@@ -21,6 +21,18 @@ const int READY = 2;          // 3
 const int CHURNING = 3;       // 2
 const int ERROR = 4;
 int state = UNINITIALIZED;
+// Web response parse machine
+const int AWAITING = 0;
+const int RECEIVING_TOTAL_TIME = 1;
+const int RECEIVING_SPEED = 2;
+const int RECEIVING_DURATION = 3;
+int receivingProgram = 0;
+int receivingSegment = 0;
+int receivingState = AWAITING;
+int p1speeds[10] = { 0 };
+int p2speeds[10] = { 0 };
+int p1durations[10] = { 0 };
+int p2durations[10] = { 0 };
 // Misc
 int errorCode = 0;
 // Button state and debouncing
@@ -214,11 +226,11 @@ void DownloadRecipe() {
     }
 
     int success = 0;
-
     while (!success) {
+
         while (client.available()) {
             char c = client.read();
-            Serial.write(c);
+            parseResponse(c);
         }
 
         // if the server's disconnected, stop the client:
@@ -229,6 +241,87 @@ void DownloadRecipe() {
             client.stop();
         }
     }
+}
+
+void parseResponse(char c) {
+
+    int awaitingDelimiterCount = 0;
+    int totalTime = 0;
+
+    Serial.write(c); // Debugging
+
+    if (receivingState == AWAITING) {
+        if (c == ';') {
+            awaitingDelimiterCount++;
+            if (awaitingDelimiterCount == 3) {
+                receivingState = RECEIVING_TOTAL_TIME;
+                receivingSegment = 0;
+                Serial.write("TotalTime");
+            }
+        }
+        else {
+            awaitingDelimiterCount = 0;
+        }
+    }
+    else if (receivingState = RECEIVING_TOTAL_TIME) {
+        if (c == ";") {
+            receivingState = RECEIVING_SPEED;
+            Serial.write("Speed");
+        }
+        else {
+            int unit = parseDigit(c);
+            totalTime *= 10;
+            totalTime += unit;
+        }
+    }
+    else if (receivingState = RECEIVING_SPEED) {
+        if (c == ",") {
+            receivingState = RECEIVING_DURATION;
+            Serial.write("Duration");
+        }
+        else {
+            int unit = parseDigit(c);
+            if (receivingProgram == 0) {
+                p1speeds[receivingSegment] *= 10;
+                p1speeds[receivingSegment] += unit;
+            } else {
+                p2speeds[receivingSegment] *= 10;
+                p2speeds[receivingSegment] += unit;
+            }
+        }
+    }
+    else if (receivingState = RECEIVING_DURATION) {
+        if (c == ";") {
+            receivingState = RECEIVING_SPEED;
+            receivingSegment++;
+            Serial.write("Speed");
+        }
+        else if (c == ".") {
+            receivingState = RECEIVING_TOTAL_TIME;
+            receivingSegment = 0;
+            receivingProgram = 1;
+            Serial.write("TotalTime");
+        }
+        else {
+            int unit = parseDigit(c);
+            if (receivingProgram == 0) {
+                p1durations[receivingSegment] *= 10;
+                p1durations[receivingSegment] += unit;
+            } else {
+                p2durations[receivingSegment] *= 10;
+                p2durations[receivingSegment] += unit;
+            }
+        }
+    }
+}
+
+int parseDigit(char c) {
+    int number = c - '0';
+    if (number < 0 || number > 9) {
+        receivingState = RECEIVING_ERROR;
+        Serial.write("Error");
+    }
+    return number;
 }
 
 void printWifiStatus() {
@@ -247,4 +340,3 @@ void printWifiStatus() {
     Serial.print(rssi);
     Serial.println(" dBm");
 }
-
