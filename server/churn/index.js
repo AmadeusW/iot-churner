@@ -9,7 +9,7 @@ module.exports = function(context, req) {
         "Speeds":   [ 0,  100,    -100,    100,      -100]
     };
 
-    var message = serialize(payload);
+    var message = serialize(payload1, payload2);
     context.log('Kefir chef sending recipe %s', message);
 
     context.res = {
@@ -19,7 +19,7 @@ module.exports = function(context, req) {
     context.done();
 };
 
-function serialize(payload)
+function serialize(payload1, payload2)
 {
     var dataSize = payload1["Times"].length;
     var dataSize2 = payload2["Times"].length;
