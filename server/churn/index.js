@@ -21,13 +21,13 @@ module.exports = function(context, req) {
 
 function serialize(payload)
 {
-    var dataSize = payload["Times"].length;
+    var dataSize = payload1["Times"].length;
     var dataSize2 = payload2["Times"].length;
     var message = "";
     for (var i = 0; i < dataSize; i++) {
-        message += payload["Times"][i];
+        message += payload1["Times"][i];
         message += ":";
-        message += payload["Speeds"][i];
+        message += payload1["Speeds"][i];
         message += ";";
     }
     message += ".";
