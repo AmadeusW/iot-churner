@@ -280,7 +280,7 @@ void parseResponse(char c) {
         }
     }
     else if (receivingState = RECEIVING_TOTAL_TIME) {
-        if (c == ";") {
+        if (c == ';') {
             receivingState = RECEIVING_DURATION;
             Serial.write("Speed");
         }
@@ -291,11 +291,11 @@ void parseResponse(char c) {
         }
     }
     else if (receivingState = RECEIVING_DURATION) {
-        if (c == ":") {
+        if (c == ':') {
             receivingState = RECEIVING_SPEED;
             Serial.write("Speed");
         }
-        else if (c == ".") {
+        else if (c == '.') {
             if (receivingProgram == 0) {
                 receivingState = RECEIVING_TOTAL_TIME;
                 receivingSegment = 0;
@@ -319,7 +319,7 @@ void parseResponse(char c) {
         }
     }
     else if (receivingState = RECEIVING_SPEED) {
-        if (c == ";") {
+        if (c == ';') {
             receivingState = RECEIVING_DURATION;
             receivingSegment++;
             Serial.write("Duration");
