@@ -174,6 +174,8 @@ void Error(int code)
 {
     errorCode = code;
     UpdateState(ERROR);
+    Serial.print("Error code: ");
+    Serial.println(errorCode);
 }
 
 void SetupState() {
