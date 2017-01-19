@@ -23,7 +23,7 @@ function serialize(payload1, payload2)
 {
     var dataSize = payload1["Times"].length;
     var dataSize2 = payload2["Times"].length;
-    var message = "";
+    var message = ";;;";
     for (var i = 0; i < dataSize; i++) {
         message += payload1["Times"][i];
         message += ":";
