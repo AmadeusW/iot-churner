@@ -28,10 +28,6 @@ const int RECEIVING_SPEED = 2;
 const int RECEIVING_DURATION = 3;
 const int RECEIVING_COMPLETE = 4;
 const int RECEIVING_ERROR = -1;
-// Errors
-const int ERROR_CONNECTING = 1;
-const int ERROR_PARSING = 2;
-const int ERROR_HARDWARE_WIFI = 3;
 int receivingProgram = 0;
 int receivingSegment = 0;
 int receivingState = RECEIVING_AWAITING;
@@ -39,6 +35,14 @@ int p1speeds[10] = { 0 };
 int p2speeds[10] = { 0 };
 int p1durations[10] = { 0 };
 int p2durations[10] = { 0 };
+int awaitingDelimiterCount = 0;
+int totalTime1 = 0;
+int totalTime2 = 0;
+bool negativeSpeed = 0;
+// Errors
+const int ERROR_CONNECTING = 1;
+const int ERROR_PARSING = 2;
+const int ERROR_HARDWARE_WIFI = 3;
 // Misc
 int errorCode = 0;
 // Button state and debouncing
@@ -262,11 +266,7 @@ void DownloadRecipe() {
 }
 
 void parseResponse(char c) {
-
-    int awaitingDelimiterCount = 0;
-    int totalTime = 0;
-
-    Serial.write(c); // Debugging
+    Serial.print(c); // Debugging
 
     if (receivingState == RECEIVING_AWAITING) {
         if (c == ';') {
@@ -274,39 +274,46 @@ void parseResponse(char c) {
             if (awaitingDelimiterCount == 3) {
                 receivingState = RECEIVING_TOTAL_TIME;
                 receivingSegment = 0;
-                Serial.write("TotalTime");
+                Serial.print("TotalTime");
             }
         }
         else {
             awaitingDelimiterCount = 0;
         }
     }
-    else if (receivingState = RECEIVING_TOTAL_TIME) {
+    else if (receivingState == RECEIVING_TOTAL_TIME) {
         if (c == ';') {
             receivingState = RECEIVING_DURATION;
-            Serial.write("Speed");
+            Serial.print("Duration");
         }
         else {
             int unit = parseDigit(c);
-            totalTime *= 10;
-            totalTime += unit;
+            if (receivingProgram == 0) {
+                totalTime1 *= 10;
+                totalTime1 += unit;
+            }
+            else {
+                totalTime2 *= 10;
+                totalTime2 += unit;
+            }
         }
     }
-    else if (receivingState = RECEIVING_DURATION) {
+    else if (receivingState == RECEIVING_DURATION) {
         if (c == ':') {
             receivingState = RECEIVING_SPEED;
-            Serial.write("Speed");
+            negativeSpeed = false;
+            Serial.print("Speed");
         }
         else if (c == '.') {
             if (receivingProgram == 0) {
                 receivingState = RECEIVING_TOTAL_TIME;
                 receivingSegment = 0;
                 receivingProgram = 1;
-                Serial.write("TotalTimeTwo");
+                Serial.print("TotalTimeTwo");
             }
             else {
                 receivingState = RECEIVING_COMPLETE;
-                Serial.write("Done");
+                Serial.print("Done");
             }
         }
         else {
@@ -320,11 +327,21 @@ void parseResponse(char c) {
             }
         }
     }
-    else if (receivingState = RECEIVING_SPEED) {
+    else if (receivingState == RECEIVING_SPEED) {
         if (c == ';') {
+            if (negativeSpeed == true) {
+                if (receivingProgram == 0) {
+                    p1durations[receivingSegment] *= -1;
+                } else {
+                    p2durations[receivingSegment] *= -1;
+                }
+            }
             receivingState = RECEIVING_DURATION;
             receivingSegment++;
-            Serial.write("Duration");
+            Serial.print("Duration");
+        }
+        else if (c == '-') {
+            negativeSpeed = true;
         }
         else {
             int unit = parseDigit(c);
@@ -343,7 +360,9 @@ int parseDigit(char c) {
     int number = c - '0';
     if (number < 0 || number > 9) {
         receivingState = RECEIVING_ERROR;
-        Serial.write("Error");
+        Serial.print("\nError parsing '");
+        Serial.print(c);
+        Serial.print("' as digit.\n");
     }
     return number;
 }
