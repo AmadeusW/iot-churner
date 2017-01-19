@@ -22,13 +22,19 @@ const int CHURNING = 3;       // 2
 const int ERROR = 4;
 int state = UNINITIALIZED;
 // Web response parse machine
-const int AWAITING = 0;
+const int RECEIVING_AWAITING = 0;
 const int RECEIVING_TOTAL_TIME = 1;
 const int RECEIVING_SPEED = 2;
 const int RECEIVING_DURATION = 3;
+const int RECEIVING_COMPLETE = 4;
+const int RECEIVING_ERROR = -1;
+// Errors
+const int ERROR_CONNECTING = 1;
+const int ERROR_PARSING = 2;
+const int ERROR_HARDWARE_WIFI = 3;
 int receivingProgram = 0;
 int receivingSegment = 0;
-int receivingState = AWAITING;
+int receivingState = RECEIVING_AWAITING;
 int p1speeds[10] = { 0 };
 int p2speeds[10] = { 0 };
 int p1durations[10] = { 0 };
@@ -55,8 +61,6 @@ char server[] = "..."; // "your.hostname.com"
 void setup() {
     SetupState();
     SetupWifi();
-    UpdateState(DOWNLOADING);
-    UpdateUi(0);
 }
 
 void loop() {
@@ -76,7 +80,6 @@ void loop() {
     }
     if (state == CHURNING)
     {
-        DownloadRecipe();
         Run();
     }
 
@@ -196,8 +199,8 @@ void SetupWifi() {
     // check for the presence of the shield:
     if (WiFi.status() == WL_NO_SHIELD) {
         Serial.println("WiFi shield not present");
-        // TODO: Go to error state
-        while (true);
+        Error(ERROR_HARDWARE_WIFI);
+        return;
     }
 
     delay(1000);
@@ -208,6 +211,7 @@ void SetupWifi() {
         status = WiFi.begin(ssid, pass);
         delay(2000);
     }
+    UpdateState(DOWNLOADING);
     printWifiStatus();
 }
 
@@ -224,13 +228,25 @@ void DownloadRecipe() {
         client.println("Connection: close");
         client.println();
     }
+    else {
+        Error(ERROR_CONNECTING);
+    }
 
     int success = 0;
     while (!success) {
 
         while (client.available()) {
             char c = client.read();
-            parseResponse(c);
+
+            if (receivingState == RECEIVING_ERROR) {
+                Error(ERROR_PARSING);
+            }
+            else if (receivingState == RECEIVING_COMPLETE) {
+                
+            }
+            else {
+                parseResponse(c);
+            }
         }
 
         // if the server's disconnected, stop the client:
@@ -250,7 +266,7 @@ void parseResponse(char c) {
 
     Serial.write(c); // Debugging
 
-    if (receivingState == AWAITING) {
+    if (receivingState == RECEIVING_AWAITING) {
         if (c == ';') {
             awaitingDelimiterCount++;
             if (awaitingDelimiterCount == 3) {
@@ -265,7 +281,7 @@ void parseResponse(char c) {
     }
     else if (receivingState = RECEIVING_TOTAL_TIME) {
         if (c == ";") {
-            receivingState = RECEIVING_SPEED;
+            receivingState = RECEIVING_DURATION;
             Serial.write("Speed");
         }
         else {
@@ -274,10 +290,22 @@ void parseResponse(char c) {
             totalTime += unit;
         }
     }
-    else if (receivingState = RECEIVING_SPEED) {
-        if (c == ",") {
-            receivingState = RECEIVING_DURATION;
-            Serial.write("Duration");
+    else if (receivingState = RECEIVING_DURATION) {
+        if (c == ":") {
+            receivingState = RECEIVING_SPEED;
+            Serial.write("Speed");
+        }
+        else if (c == ".") {
+            if (receivingProgram == 0) {
+                receivingState = RECEIVING_TOTAL_TIME;
+                receivingSegment = 0;
+                receivingProgram = 1;
+                Serial.write("TotalTimeTwo");
+            }
+            else {
+                receivingState = RECEIVING_COMPLETE;
+                Serial.write("Done");
+            }
         }
         else {
             int unit = parseDigit(c);
@@ -290,17 +318,11 @@ void parseResponse(char c) {
             }
         }
     }
-    else if (receivingState = RECEIVING_DURATION) {
+    else if (receivingState = RECEIVING_SPEED) {
         if (c == ";") {
-            receivingState = RECEIVING_SPEED;
+            receivingState = RECEIVING_DURATION;
             receivingSegment++;
-            Serial.write("Speed");
-        }
-        else if (c == ".") {
-            receivingState = RECEIVING_TOTAL_TIME;
-            receivingSegment = 0;
-            receivingProgram = 1;
-            Serial.write("TotalTime");
+            Serial.write("Duration");
         }
         else {
             int unit = parseDigit(c);
